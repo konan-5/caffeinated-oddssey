@@ -10,6 +10,8 @@ app = FastAPI(
     version="1.0.0",
 )
 
+client_service_url = "http://client_server:8000"
+
 
 async def process_order(order):
     """
@@ -18,14 +20,14 @@ async def process_order(order):
     async with aiohttp.ClientSession() as session:
         # Notify that the order processing has started
         await session.post(
-            f"http://127.0.0.1:8000/order?client_id={order['client_id']}&worker_flag=start"
+            f"{client_service_url}/order?client_id={order['client_id']}&worker_flag=start"
         )
         print("brewing started")
         # Simulate brewing time
         await asyncio.sleep(random.randint(1, 5))
         # Notify that the order has been brewed
         await session.post(
-            f"http://127.0.0.1:8000/order?client_id={order['client_id']}&worker_flag=brewed"
+            f"{client_service_url}/order?client_id={order['client_id']}&worker_flag=brewed"
         )
         return f"Finished brewing for `{order['client_id']}` client"
 
@@ -37,7 +39,7 @@ async def start_order():
     """
     async with aiohttp.ClientSession() as session:
         async with session.post(
-            "http://127.0.0.1:8000/order?client_id=worker&worker_flag=fetch"
+            f"{client_service_url}/order?client_id=worker&worker_flag=fetch"
         ) as resp:
             order_array = await resp.json()
 
@@ -60,7 +62,7 @@ async def finish_order(client_id: str):
     """
     async with aiohttp.ClientSession() as session:
         async with session.post(
-            "http://127.0.0.1:8000/order?client_id=worker&worker_flag=fetch"
+            f"{client_service_url}/order?client_id=worker&worker_flag=fetch"
         ) as resp:
             order_array = await resp.json()
 
@@ -68,7 +70,7 @@ async def finish_order(client_id: str):
         if order["client_id"] == client_id:
             async with aiohttp.ClientSession() as session:
                 async with session.post(
-                    f"http://127.0.0.1:8000/order?client_id={client_id}&worker_flag=finish"
+                    f"{client_service_url}/order?client_id={client_id}&worker_flag=finish"
                 ) as resp:
                     resp_text = await resp.json()
                     return f"{resp_text} the order for `{client_id}` client"
