@@ -1,27 +1,74 @@
-# The Caffeinated Odyssey
+# Caffeinated Odyssey
 
-## Overview
+Caffeinated Odyssey is a FastAPI-based project that simulates a coffee ordering system. It includes two main services: a client server for placing and managing orders and a worker server for processing these orders.
 
-This project involves setting up two FastAPI servers: one for clients to place coffee orders and another for baristas to process these orders, using a shared in-memory queue to manage the order flow. The client server handles incoming orders and adds them to the queue, while the worker server retrieves and processes orders, ensuring a smooth and efficient coffee-making workflow.
+## Getting Started
 
-## Setup and Execution
+### Prerequisites
 
-1. **Clone the Repository**:
-    ```bash
-    git clone https://github.com/your-username/caffeinated_odyssey.git
-    cd caffeinated_odyssey
-    ```
+- Docker
+- Docker Compose
 
-2. **Build and Run with Docker Compose**:
-    ```bash
-    docker-compose up --build
-    ```
+### Installation
 
-3. **Access the Services**:
-    - Client orders: `http://localhost/order/`
-    - Worker start: `http://localhost/start/`
-    - Worker finish: `http://localhost/finish/`
+1. Clone the repository:
 
-## Anti-DDoS Measures
+```sh
+git clone https://github.com/yourusername/caffeinated-odyssey.git
+cd caffeinated-odyssey
+```
 
-The nginx configuration in `nginx/default.conf` includes rate limiting to protect against DDoS attacks.
+2. Build and start the Docker containers using Docker Compose:
+
+```sh
+docker-compose up --build
+```
+
+This will build the Docker images and start the `client_server` on port 8000 and `worker_server` on port 8001.
+
+### Usage
+
+The client server exposes the following endpoints:
+
+- **POST /order/**: Place an order with a client ID.
+
+The worker server exposes the following endpoints:
+
+- **GET /start/**: Fetch pending orders and start brewing.
+- **POST /finish/**: Mark an order as delivered by providing the `client_id`.
+
+### API Endpoints
+
+#### Client Server
+
+- **POST /order/**:
+  - Description: Place a new order or update an existing order status.
+  - Parameters:
+    - `client_id` (query): The ID of the client.
+  - Response: Order status.
+
+#### Worker Server
+
+- **GET /start/**:
+  - Description: Fetch pending orders and start brewing.
+  - Response: Brewing status or message if no orders are available.
+
+- **POST /finish/**:
+  - Description: Mark an order as delivered.
+  - Parameters:
+    - `client_id` (query): The ID of the client.
+  - Response: Delivery status or message if no orders are found for the client.
+
+### Built With
+
+- [FastAPI](https://fastapi.tiangolo.com/) - The web framework used
+- [Docker](https://www.docker.com/) - Containerization platform
+- [Docker Compose](https://docs.docker.com/compose/) - Tool for defining and running multi-container Docker applications
+
+### Contributing
+
+Contributions are welcome! Please fork the repository and use a feature branch. Pull requests are accepted.
+
+### Authors
+
+- **Ikeda Hiroshi** - [konan-5](https://github.com/konan-5)

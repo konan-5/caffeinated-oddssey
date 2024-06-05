@@ -1,24 +1,40 @@
-from fastapi import FastAPI, BackgroundTasks
-from .models import Order
-from .shared_data import orders_queue
-from time import sleep
+from fastapi import FastAPI
+import time
 import random
+import requests
 
-app_worker = FastAPI()
+app = FastAPI()
 
-@app_worker.get("/start/")
+
+@app.get("/start/")
 async def start_order():
-    if not orders_queue.empty():
-        order_dict = orders_queue.get()
-        order = Order(**order_dict)  # Deserialize the dictionary to an Order object
-        return order
-    return {"message": "No orders"}
+    resp = requests.post(
+        "http://127.0.0.1:8000/order?client_id=worker&worker_flag=fetch"
+    )
+    order_array = resp.json()
+    for order in order_array:
+        order["status"] == "pending"
+        requests.post(
+            f"http://127.0.0.1:8000/order?client_id={order['client_id']}&worker_flag=start"
+        )
+        time.sleep(random.randint(30, 60))
+        requests.post(
+            f"http://127.0.0.1:8000/order?client_id={order['client_id']}&worker_flag=brewed"
+        )
+        return f"finished brewing for {order['client_id']}"
+    return "No available orders"
 
-@app_worker.post("/finish/")
-async def finish_order(order: Order, background_tasks: BackgroundTasks):
-    def process_order():
-        sleep(random.randint(30, 60))  # Simulate brewing time
-        print(f"Order for client {order.client_id} is ready")
 
-    background_tasks.add_task(process_order)
-    return {"message": "Order is being processed"}
+@app.post("/finish/")
+async def finish_order(client_id: str):
+    resp = requests.post(
+        "http://127.0.0.1:8000/order?client_id=worker&worker_flag=fetch"
+    )
+    order_array = resp.json()
+    for order in order_array:
+        if order["client_id"] == client_id:
+            requests.post(
+                f"http://127.0.0.1:8000/order?client_id={client_id}&worker_flag=finish"
+            )
+            return f"deleveried {client_id} order"
+    return f"No orders for the client - {client_id}"

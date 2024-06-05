@@ -1,25 +1,57 @@
-from fastapi import FastAPI, Request, HTTPException, status
-from .models import Order
-from .shared_data import orders_queue
+import time
+from typing import List
+from fastapi import FastAPI, Request, Query
+from models import Order
 
-app_client = FastAPI()
-blocked_ips = set()
-MAX_REQUESTS = 1000
+app = FastAPI()
 
-@app_client.post("/order/")
-async def place_order(request: Request, order: Order):
-    client_ip = request.client.host
+order_array: List[Order] = []
 
-    if client_ip in blocked_ips:
-        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Too many requests")
 
-    if orders_queue.qsize() >= MAX_REQUESTS:
-        blocked_ips.add(client_ip)
-        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Too many requests")
+@app.get("/")
+def fetch_order():
+    return order_array
 
-    orders_queue.put(order)
-    return {"message": "Order received"}
 
-@app_client.get("/orders/")
-async def get_orders():
-    return {"orders": list(orders_queue.queue)}
+@app.post("/order/")
+def place_order(
+    request: Request,
+    client_id: str,
+    worker_flag: str = Query("", include_in_schema=False),
+):
+    if worker_flag == "fetch":
+        return order_array
+
+    if worker_flag == "start" or worker_flag == "finish" or worker_flag == "brewed":
+        if not order_array:
+            return "No available orders"
+
+        order_idx = None
+        for idx, order in enumerate(order_array):
+            if order.client_id == client_id:
+                order_idx = idx
+                break
+
+        if order_idx is None:
+            return "No orders with that client_id"
+
+        if worker_flag == "start":
+            order_array[order_idx].status = "brewing"
+            return "brewing"
+        elif worker_flag == "brewed":
+            order_array[order_idx].status = "brewed"
+            return "brewed"
+        elif worker_flag == "finish":
+            order_array[order_idx].status = "delivered"
+            return "delivered"
+
+    else:
+        order = Order(client_id=client_id, status="pending")
+
+        order_array.append(order)
+        order.id = len(order_array)
+
+        while True:
+            if order.status == "delivered":
+                return "success"
+            time.sleep(1)
