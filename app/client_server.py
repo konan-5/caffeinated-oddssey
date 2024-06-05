@@ -71,8 +71,10 @@ async def place_order(
             order_array[order_idx].status = "brewed"
             return "brewed"
         elif worker_flag == "finish":
-            if order_array[order_idx].status:
+            if order_array[order_idx].status == "delivered":
                 return "already delivered"
+            elif order_array[order_idx].status != "brewed":
+                return "not yet brewed"
             order_array[order_idx].status = "delivered"
             return "delivered"
 
@@ -90,5 +92,5 @@ async def place_order(
     # Wait until the order is delivered
     while True:
         if order.status == "delivered":
-            return "success"
+            return "Happy brewing, and may the caffeine be ever in your favor! ☕️"
         await asyncio.sleep(1)

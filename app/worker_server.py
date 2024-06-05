@@ -22,12 +22,12 @@ async def process_order(order):
         )
         print("brewing started")
         # Simulate brewing time
-        await asyncio.sleep(random.randint(30, 60))
+        await asyncio.sleep(random.randint(1, 5))
         # Notify that the order has been brewed
         await session.post(
             f"http://127.0.0.1:8000/order?client_id={order['client_id']}&worker_flag=brewed"
         )
-        return f"Finished brewing for {order['client_id']}"
+        return f"Finished brewing for `{order['client_id']}` client"
 
 
 @app.get("/start/")
@@ -67,8 +67,10 @@ async def finish_order(client_id: str):
     for order in order_array:
         if order["client_id"] == client_id:
             async with aiohttp.ClientSession() as session:
-                await session.post(
+                async with session.post(
                     f"http://127.0.0.1:8000/order?client_id={client_id}&worker_flag=finish"
-                )
-            return f"Delivered {client_id} order"
+                ) as resp:
+                    resp_text = await resp.json()
+                    return f"{resp_text} the order for `{client_id}` client"
+
     return f"No orders for the client - {client_id}"
