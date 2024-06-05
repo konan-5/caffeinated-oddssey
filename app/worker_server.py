@@ -12,16 +12,20 @@ async def start_order():
         "http://127.0.0.1:8000/order?client_id=worker&worker_flag=fetch"
     )
     order_array = resp.json()
+    print(order_array)
     for order in order_array:
-        order["status"] == "pending"
-        requests.post(
-            f"http://127.0.0.1:8000/order?client_id={order['client_id']}&worker_flag=start"
-        )
-        time.sleep(random.randint(30, 60))
-        requests.post(
-            f"http://127.0.0.1:8000/order?client_id={order['client_id']}&worker_flag=brewed"
-        )
-        return f"finished brewing for {order['client_id']}"
+        if order["status"] == "pending":
+            requests.post(
+                f"http://127.0.0.1:8000/order?client_id={order['client_id']}&worker_flag=start"
+            )
+            print("aaaaaaaaaaaaa")
+            time.sleep(random.randint(30, 60))
+            requests.post(
+                f"http://127.0.0.1:8000/order?client_id={order['client_id']}&worker_flag=brewed"
+            )
+            return f"finished brewing for {order['client_id']}"
+        else:
+            continue
     return "No available orders"
 
 
