@@ -1,6 +1,6 @@
 # Caffeinated Odyssey
 
-Caffeinated Odyssey is a FastAPI-based project that simulates a coffee ordering system. It includes two main services: a client server for placing and managing orders and a worker server for processing these orders.
+Caffeinated Odyssey is a FastAPI-based project that simulates a coffee ordering system. It includes two main services: a client server for placing and a worker server for processing these orders.
 
 ## Getting Started
 
