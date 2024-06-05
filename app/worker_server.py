@@ -24,7 +24,7 @@ async def process_order(order):
         )
         print("brewing started")
         # Simulate brewing time
-        await asyncio.sleep(random.randint(1, 5))
+        await asyncio.sleep(random.randint(30, 60))
         # Notify that the order has been brewed
         await session.post(
             f"{client_service_url}/order?client_id={order['client_id']}&worker_flag=brewed"
