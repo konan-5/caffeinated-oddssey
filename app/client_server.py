@@ -65,6 +65,8 @@ async def place_order(
             order_array[order_idx].status = "brewed"
             return "brewed"
         elif worker_flag == "finish":
+            if order_array[order_idx].status:
+                return "already delivered"
             order_array[order_idx].status = "delivered"
             return "delivered"
 
